@@ -1,0 +1,31 @@
+{
+  "$schema": "https://turborepo.org/schema.json",
+  "ui": "stream",
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**"]
+    },
+    "build:development": {
+      "dependsOn": ["^build:development"],
+      "outputs": ["dist/**"]
+    },
+    "document": {
+      "inputs": ["$TURBO_ROOT$/packages/framework/**/src/**/*.{ts,tsx}", "!$TURBO_ROOT$/packages/framework/**/src/**/*.test.{ts,tsx}"],
+      "outputs": ["docs/**/*.md"]
+    },
+    "test": {},
+    "test:watch": {
+      "cache": false,
+      "persistent": true
+    },
+    "watch": {},
+    "lint": {
+      "dependsOn": ["^lint"]
+    },
+    "typescript": {
+      "dependsOn": ["^typescript"]
+    },
+    "extract-translations": {}
+  }
+}
