@@ -1,6 +1,8 @@
 :sparkles:
 
-# OpenMRS Frontend Core
+# ESM A.I Expert System
+
+![Logo](https://github.com/user-attachments/assets/c5e1409d-8fb8-4016-9ef6-855172c8e2d1)
 
 This is a [monorepo](https://yarnpkg.com/advanced/lexicon#monorepo) containing the packages that use Artificial Intelligence ( A.I ) to mimic the judgment and problem-solving abilities of a human expert in the use of digital tools, and electronic platforms to enhance healthcare delivery, improve patient care, and ultimately improve health outcomes.
 
