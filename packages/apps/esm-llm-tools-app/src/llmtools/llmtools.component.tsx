@@ -28,6 +28,7 @@ function LlmTools(props: AppProps) {
     <>
       {llmToolsButtonVisible && (
         <Button
+          name="llmtoolsButton"
           className={classNames(styles.llmtoolsTriggerButton)}
           kind="ghost"
           onClick={toggleLlmTools}
