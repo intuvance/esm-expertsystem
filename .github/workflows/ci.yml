@@ -87,7 +87,7 @@ jobs:
 
       - name: 🏷️ Version
         # This command CANNOT be run in parallel
-        run: yarn workspaces foreach --worktree --topological --exclude @openmrs/esm-core version "$(node -e "console.log(require('semver').inc(require('./package.json').version, 'patch'))")-pre.${{ github.run_number }}"
+        run: yarn workspaces foreach --worktree --topological --exclude @intuvance/esm-expertsystem version "$(node -e "console.log(require('semver').inc(require('./package.json').version, 'patch'))")-pre.${{ github.run_number }}"
 
       - name: 🏗️ Build
         run: yarn turbo run build --color --concurrency=5
@@ -139,21 +139,3 @@ jobs:
         run: yarn config set npmAuthToken "${NODE_AUTH_TOKEN}" && yarn run ci:publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
-
-  deploy_app_shell:
-    runs-on: ubuntu-latest
-
-    needs: pre_release
-
-    if: ${{ (github.event.head_commit == null ||
-          !startsWith(github.event.head_commit.message, '(release)')) &&
-          (github.event_name == 'push' || github.event_name == 'workflow_dispatch') }}
-
-    steps:
-      - name: 🚀 Trigger RefApp Build
-        uses: fjogeleit/http-request-action@v1
-        continue-on-error: true
-        with:
-          url: https://ci.openmrs.org/rest/api/latest/queue/O3-BF
-          method: "POST"
-          customHeaders: '{ "Authorization": "Bearer ${{ secrets.BAMBOO_TOKEN }}" }'

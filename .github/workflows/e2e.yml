@@ -45,7 +45,7 @@ jobs:
               - 'example.env'
               - '.github/workflows/e2e.yml'
 
-  run-e2e-on-esm-core:
+  run-e2e-on-esm-expertsystem:
     needs: changes
     if: ${{ needs.changes.outputs.test-changes == 'true' }}
 
@@ -110,7 +110,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: report-esm-core
+          name: report-esm-expertsystem
           path: playwright-report/
           retention-days: 30
 
@@ -126,7 +126,7 @@ jobs:
           - openmrs-esm-form-builder
 
     steps:
-      - name: 📥 Checkout esm-core repo
+      - name: 📥 Checkout esm-expertsystem repo
         uses: actions/checkout@v4
 
       - name: 🛠️ Setup node
