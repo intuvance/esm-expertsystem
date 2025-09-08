@@ -58,6 +58,8 @@
   "dependencies": {
     "@carbon/icons-react": "^11.65.0",
     "@carbon/react": "^1.83.0",
+    "@langchain/core": "^0.3.75",
+    "@langchain/ollama": "^0.2.4",
     "fuzzy": "^0.1.3"
   }
 }
