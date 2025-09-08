@@ -1,0 +1,87 @@
+@use '@carbon/layout';
+@use '@openmrs/esm-styleguide/src/vars' as *;
+
+p {
+  text-align: justify;
+}
+
+.bold {
+  font-weight: bold;
+}
+
+.llmtlabelactions {
+  width: 80%;
+  margin: 0 auto;
+}
+
+.llmtprivacytermsbutton {
+  padding: 0;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-width: auto;
+  min-height: auto;
+}
+
+.llmttoggletipcontent {
+  padding: 0 !important;
+  width: auto !important;
+  height: auto !important;
+}
+
+.llmtpromptleftheader {
+  padding-top: 1rem !important;
+  padding-left: 0 !important;
+  margin-left: 0 auto !important;
+}
+
+.llmtpromptrightheader {
+  padding-top: 1rem !important;
+  padding-left: 2.5rem !important;
+  margin-left: 0 auto !important;
+}
+
+.llmtpromptpanel {
+  padding: 0% !important;
+  margin: auto;
+}
+
+.cds--toggletip-content {
+  padding-bottom: 0 !important;
+}
+
+.llmtscrollablelistcontainer {
+  max-height: 350px;
+  overflow-y: auto;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+}
+
+.llmtscrollablelistcontainer::-webkit-scrollbar {
+  width: 6px;
+}
+
+.llmtscrollablelistcontainer::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.llmtscrollablelistcontainer::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 3px;
+}
+
+.llmtscrollablelistcontainer::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+.llmtsnippet {
+  margin-top: 16%;
+}
+
+.llmtslargecell {
+  padding: 2.5rem 2.5rem !important;
+  font-size: 1rem;
+  min-height: 60px;
+  border-bottom: 1px solid var(--cds-border-subtle);
+}

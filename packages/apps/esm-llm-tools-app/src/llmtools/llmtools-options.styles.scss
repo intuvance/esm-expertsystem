@@ -1,0 +1,20 @@
+@use '@carbon/layout';
+@use '@openmrs/esm-styleguide/src/vars' as *;
+
+.promptButtonsLayout {
+  display: 'flex';
+  justify-content: 'space-between';
+}
+
+.promptModelSelector {
+  width: 50;
+}
+
+.promptLayout .cds--row {
+  margin-bottom: 0;
+}
+
+.promptLayout .cds--col {
+  padding-top: 0;
+  padding-bottom: 0;
+}
