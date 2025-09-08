@@ -26,6 +26,7 @@ function LlmToolsOptions() {
               max={1}
               step={0.1}
               value={temperature}
+              className={classNames(styles.promptTempearatureSlider)}
               onChange={({ value }) => setTemperature(value)}
               aria-label="Temperature"
             />

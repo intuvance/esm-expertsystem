@@ -13,7 +13,7 @@ function LlmToolsAILabel() {
           </p>
           <hr />
           <p>
-            This AI feature provides supplemental information only and is not a substitute for professional medical
+            This AI assistant provides supplemental information only and is not a substitute for professional medical
             judgment. Always verify critical information and consult qualified healthcare professionals before making
             clinical decisions. The system may generate inconsistent or incomplete content - use at your own discretion!
           </p>

@@ -103,12 +103,14 @@ function LlmToolsChat() {
               <LlmToolsAIPrompt />
             </StructuredListCell>
             <StructuredListCell className={classNames(styles.llmtslargecell)}>
-              This output means that 12.34% of your patients have diabetes in your OpenMRS system. How to Interpret the
-              Numbers: 12.34%: This represents the proportion of your active patients who have been diagnosed with
-              diabetes Calculation basis: This percentage was calculated by: Counting all unique patients with a
-              diabetes diagnosis (concept ID 5089) Dividing by the total number of active patients in your system
-              Converting to a percentage and rounding to 2 decimal places.
-              <CodeSnippet feedback="Copied to clipboard" type="multi" className={classNames(styles)}>
+              <p>
+                This output means that 12.34% of your patients have diabetes in your OpenMRS system. How to Interpret
+                the Numbers: 12.34%: This represents the proportion of your active patients who have been diagnosed with
+                diabetes Calculation basis: This percentage was calculated by: Counting all unique patients with a
+                diabetes diagnosis (concept ID 5089) Dividing by the total number of active patients in your system
+                Converting to a percentage and rounding to 2 decimal places.
+              </p>
+              <CodeSnippet feedback="Copied to clipboard" type="multi" className={classNames(styles.llmtsnippet)}>
                 SELECT ROUND( (COUNT(DISTINCT diabetes_patients.patient_id) * 100.0 / COUNT(DISTINCT
                 all_patients.patient_id)), 2 ) AS diabetes_percentage FROM patient all_patients LEFT JOIN ( SELECT
                 DISTINCT obs.person_id AS patient_id FROM obs JOIN concept_name cn ON obs.concept_id = cn.concept_id

@@ -7,7 +7,7 @@
 }
 
 .promptModelSelector {
-  width: 50;
+  width: 100%;
 }
 
 .promptLayout .cds--row {
@@ -17,4 +17,8 @@
 .promptLayout .cds--col {
   padding-top: 0;
   padding-bottom: 0;
+}
+
+.promptTempearatureSlider .bx--slider-container {
+  width: 100% !important;
 }
