@@ -39,6 +39,7 @@ function LlmToolsChat() {
   const [input, setInput] = useState('');
   const [llmResponse, setLlmResponse] = useLlm('expertsystem-llm-response', '');
   const [isLoading, setIsLoading] = useState(false);
+  const [confidence, setConfidence] = useState<number | null>(null);
 
   const fakePromise = () => {
     return new Promise<void>((resolve) => {
@@ -73,9 +74,11 @@ function LlmToolsChat() {
       const chain = prompt.pipe(ollama).pipe(new StringOutputParser());
       const result = await chain.invoke({ query: input });
       setLlmResponse(result);
+      setConfidence(90);
     } catch (error) {
       console.error('Error generating response:', error);
       setLlmResponse('Error generating response...');
+      setConfidence(null);
     } finally {
       setIsLoading(false);
     }
@@ -131,6 +134,23 @@ function LlmToolsChat() {
                 loadingStatus={privacyStatus}
                 loadingDescription={privacyDescription}
               />
+              <hr />
+              <div className={styles.tileContainer}>
+                <p className="secondary">A.I Expert System</p>
+                <h2 className="ai-label-heading">
+                  {confidence !== null && (
+                    <>
+                      <span>Confidence score: </span>
+                      <span className={confidence >= 90 ? 'llmgreen' : confidence >= 60 ? 'llmyellow' : 'llmred'}>
+                        {Math.round(confidence)}%
+                      </span>
+                    </>
+                  )}
+                </h2>
+                <hr />
+                <p className="secondary">Model type:</p>
+                <p className="bold">Foundation model:</p>
+              </div>
             </StructuredListCell>
             <StructuredListCell className={classNames(styles.llmtpromptpanel)}>
               <TextArea

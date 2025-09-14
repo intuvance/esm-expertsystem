@@ -1,4 +1,5 @@
 @use '@carbon/layout';
+@use '@carbon/colors';
 @use '@openmrs/esm-styleguide/src/vars' as *;
 
 p {
@@ -163,4 +164,16 @@ p {
       justify-content: space-between;
     }
   }
+}
+
+.llmgreen {
+  color: colors.$green-40;
+}
+
+.llmyellow {
+  color: colors.$yellow-30;
+}
+
+.llmred {
+  color: colors.$red-50;
 }
