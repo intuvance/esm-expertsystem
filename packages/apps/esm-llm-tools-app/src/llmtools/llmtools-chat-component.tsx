@@ -2,19 +2,32 @@ import React, { useState } from 'react';
 import {
   Button,
   CodeSnippet,
+  IconButton,
   Modal,
   StructuredListBody,
   StructuredListCell,
   StructuredListHead,
   StructuredListRow,
   StructuredListWrapper,
+  TextArea,
+  TextAreaSkeleton,
 } from '@carbon/react';
+import { useTranslation } from 'react-i18next';
+import { AiGenerate, AiGovernanceTracked, SendAltFilled } from '@carbon/react/icons';
+
+import { Ollama } from '@langchain/ollama';
+import { ChatPromptTemplate } from '@langchain/core/prompts';
+import { StringOutputParser } from '@langchain/core/output_parsers';
+
+import { useLlm } from '../hooks/useLlm';
 import LlmToolsAILabel from './llmtools-label.component';
-import LlmToolsAIPrompt from './llmtools-prompt-component';
+import LlmToolsOptions from './llmtools-options-component';
+
 import classNames from 'classnames';
 import styles from './llmtools-chat.styles.scss';
 
 function LlmToolsChat() {
+  const { t } = useTranslation();
   const [termsStatus, setTermsStatus] = useState<'inactive' | 'active' | 'finished' | 'error'>('inactive');
   const [privacyStatus, setPrivacyStatus] = useState<'inactive' | 'active' | 'finished' | 'error'>('inactive');
   const [acceptLlmToolsTerms, setLacceptLlmToolsTerms] = useState(false);
@@ -23,6 +36,9 @@ function LlmToolsChat() {
   const [privacyDescription, setPrivacyDescription] = useState('Accepting privacy policy...');
   const [openTerms, setOpenTerms] = useState(false);
   const [openPrivacy, setOpenPrivacy] = useState(false);
+  const [input, setInput] = useState('');
+  const [llmResponse, setLlmResponse] = useLlm('expertsystem-llm-response', '');
+  const [isLoading, setIsLoading] = useState(false);
 
   const fakePromise = () => {
     return new Promise<void>((resolve) => {
@@ -46,6 +62,23 @@ function LlmToolsChat() {
     await fakePromise();
     setPrivacyDescription('Accepted privacy policy!');
     setPrivacyStatus('finished');
+  };
+
+  const handleGenerateResponse = async () => {
+    setIsLoading(true);
+
+    try {
+      const ollama = new Ollama({ model: 'meditron' });
+      const prompt = ChatPromptTemplate.fromMessages([['human', '{query}']]);
+      const chain = prompt.pipe(ollama).pipe(new StringOutputParser());
+      const result = await chain.invoke({ query: input });
+      setLlmResponse(result);
+    } catch (error) {
+      console.error('Error generating response:', error);
+      setLlmResponse('Error generating response...');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -74,10 +107,10 @@ function LlmToolsChat() {
                 open={openTerms}
                 onRequestClose={() => setOpenTerms(false)}
                 danger
-                modalHeading="By using this prompt you agree to the OpenMRS A.I usage Terms."
-                modalLabel="Terms"
-                primaryButtonText="Accept Terms Of Use"
-                secondaryButtonText="Cancel"
+                modalHeading={t('aiUsageTerms', 'By using this prompt you agree to the OpenMRS A.I usage Terms.')}
+                modalLabel={t('terms', 'Terms')}
+                primaryButtonText={t('aiAcceptTermsOfUse', 'Accept Terms Of Use')}
+                secondaryButtonText={t('cancel', 'Cancel')}
                 onRequestSubmit={handleAcceptLlmToolsTerms}
                 loadingStatus={termsStatus}
                 loadingDescription={termsDescription}
@@ -90,33 +123,68 @@ function LlmToolsChat() {
                 open={openPrivacy}
                 onRequestClose={() => setOpenPrivacy(false)}
                 danger
-                modalHeading="By using this prompt you agree to the OpenMRS A.I Privacy policy."
-                modalLabel="Privacy"
-                primaryButtonText="Accept Privacy Policy"
-                secondaryButtonText="Cancel"
+                modalHeading={t('aiPrivacyPolicy', 'By using this prompt you agree to the OpenMRS A.I Privacy policy.')}
+                modalLabel={t('privacy', 'Privacy')}
+                primaryButtonText={t('aiAcceptPolicy', 'Accept Privacy Policy.')}
+                secondaryButtonText={t('cancel', 'Cancel')}
                 onRequestSubmit={handleAcceptLlmToolsPrivacyPolicy}
                 loadingStatus={privacyStatus}
                 loadingDescription={privacyDescription}
               />
             </StructuredListCell>
             <StructuredListCell className={classNames(styles.llmtpromptpanel)}>
-              <LlmToolsAIPrompt />
+              <TextArea
+                id="llmtools-prompt"
+                enableCounter
+                decorator={
+                  <>
+                    {isLoading ? (
+                      <AiGenerate />
+                    ) : (
+                      <IconButton
+                        align="bottom"
+                        defaultOpen
+                        kind="primary"
+                        label="Send"
+                        onClick={handleGenerateResponse}
+                        size="sm"
+                      >
+                        <SendAltFilled />
+                      </IconButton>
+                    )}
+                  </>
+                }
+                labelText={t('prompt', 'Your Prompt')}
+                placeholder={t('aiPrompt', 'Enter your A.I prompt here...')}
+                value={input}
+                maxCount={500}
+                onChange={(e) => setInput(e.target.value)}
+                rows={4}
+                className={classNames(styles.promptTextarea)}
+                helperText={<LlmToolsOptions />}
+              />
             </StructuredListCell>
             <StructuredListCell className={classNames(styles.llmtslargecell)}>
-              <p>
-                This output means that 12.34% of your patients have diabetes in your OpenMRS system. How to Interpret
-                the Numbers: 12.34%: This represents the proportion of your active patients who have been diagnosed with
-                diabetes Calculation basis: This percentage was calculated by: Counting all unique patients with a
-                diabetes diagnosis (concept ID 5089) Dividing by the total number of active patients in your system
-                Converting to a percentage and rounding to 2 decimal places.
-              </p>
-              <CodeSnippet feedback="Copied to clipboard" type="multi" className={classNames(styles.llmtsnippet)}>
-                SELECT ROUND( (COUNT(DISTINCT diabetes_patients.patient_id) * 100.0 / COUNT(DISTINCT
-                all_patients.patient_id)), 2 ) AS diabetes_percentage FROM patient all_patients LEFT JOIN ( SELECT
-                DISTINCT obs.person_id AS patient_id FROM obs JOIN concept_name cn ON obs.concept_id = cn.concept_id
-                WHERE cn.name = 'DIABETES' AND cn.concept_name_type = 'FULLY_SPECIFIED' AND obs.voided = 0 AND
-                obs.value_coded IS NOT NULL ) diabetes_patients ON all_patients.patient_id =
-                diabetes_patients.patient_id WHERE all_patients.voided = 0;
+              {isLoading ? (
+                <TextAreaSkeleton />
+              ) : (
+                llmResponse && (
+                  <p>
+                    {llmResponse}
+                    <br />
+                    <div className={styles.footer}>
+                      <AiGovernanceTracked size={14} />
+                      <span className={styles.notes}>{t('aiGeneratedResponse', ' AI-generated notes')}</span>
+                    </div>
+                  </p>
+                )
+              )}
+              <CodeSnippet
+                feedback={t('copiedToClipboard', 'Copied to clipboard')}
+                type="multi"
+                className={classNames(styles.llmtsnippet)}
+              >
+                {isLoading ? <TextAreaSkeleton /> : <p>{llmResponse}</p>}
               </CodeSnippet>
             </StructuredListCell>
           </StructuredListRow>

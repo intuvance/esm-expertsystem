@@ -85,3 +85,82 @@ p {
   min-height: 60px;
   border-bottom: 1px solid var(--cds-border-subtle);
 }
+
+.llmtPromptContainer {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0;
+}
+
+.promptInputContainer {
+  position: relative;
+  margin-bottom: 0.5rem;
+}
+
+.promptTextarea {
+  width: 100%;
+}
+
+.promptSendButton {
+  position: absolute;
+  padding: 0;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-width: auto;
+  min-height: auto;
+  z-index: 1;
+}
+
+.promptControlsContainer {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4.5rem;
+}
+
+.promptFileUploadContainer {
+  grid-column: span 2;
+}
+
+.promptUploadedFile {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background-color: #f4f4f4;
+  border-radius: 4px;
+}
+
+.promptParameterControl {
+  margin-bottom: 0.5rem;
+}
+
+.promptParameterControlLabel {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.footer {
+  padding-top: 5%;
+  background-color: $ui-03;
+  border-top: 1px solid $ui-04;
+  padding: layout.$spacing-06 0;
+  margin-top: auto;
+  width: 100%;
+  font-size: 0.875rem;
+  color: $text-02;
+
+  .note {
+    display: flex;
+    flex-direction: column;
+    gap: layout.$spacing-05;
+
+    @media (min-width: 768px) {
+      flex-direction: row;
+      justify-content: space-between;
+    }
+  }
+}
