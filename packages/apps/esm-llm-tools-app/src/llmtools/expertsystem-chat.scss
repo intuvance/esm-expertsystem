@@ -173,6 +173,10 @@
   margin-bottom: 0.25rem;
 }
 
+.errorText {
+  color: red !important;
+}
+
 @media (max-width: 900px) {
   .flexContainer {
     flex-direction: column;

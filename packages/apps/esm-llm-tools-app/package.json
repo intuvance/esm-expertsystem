@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "license": "MPL-2.0",
   "description": "LLM tools app for frontend medical practitioners to use A.I ",
-  "browser": "dist/intuvance-esm-llmtools-app.js",
+  "browser": "dist/esm-llm-tools-app.js",
   "main": "src/index.ts",
   "source": true,
   "scripts": {
