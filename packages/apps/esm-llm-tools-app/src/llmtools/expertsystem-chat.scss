@@ -1,0 +1,189 @@
+@use '@carbon/colors';
+
+.expertSystemChat {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.headerSection {
+  margin-left: 0px;
+  margin-top: 8px;
+}
+
+.flexContainer {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  gap: 1rem;
+}
+
+.leftColumn {
+  flex: 0 0 350px;
+  padding-left: 0.5rem;
+}
+
+.rightColumn {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #fafafa;
+  border-radius: 8px;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+}
+
+.llmtpromptpanel {
+  padding: 1rem;
+  border-radius: 8px;
+  background: #f8f8f8;
+}
+
+.controlsRow {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.temperatureControl,
+.toolsMultiSelect,
+.modelSelect {
+  min-width: 180px;
+}
+
+.sendButtonWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.streamingContainer {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.quillEditor {
+  background: white;
+  border-radius: 5px;
+  padding: 0.75rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.copyButton {
+  align-self: flex-end;
+}
+
+.aiMessage {
+  margin-top: 1rem;
+}
+
+.labelPadding {
+  margin-top: 12px;
+  margin-left: 7px;
+}
+
+.buttonPadding {
+  margin-top: 0;
+}
+
+.controlLabel {
+  font-size: 0.75rem;
+  line-height: 1rem;
+  color: #525252;
+  margin-bottom: 4px;
+}
+
+.promptLabel {
+  margin-bottom: 0.25rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+  color: #525252;
+}
+
+.textAreaButtonWrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-left: 0px;
+}
+
+.promptTextarea {
+  flex: 1;
+  min-height: 2.5rem;
+  resize: none;
+  padding: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.promptSendButton {
+  height: 3rem;
+  width: 3rem;
+  margin-top: 2.5px;
+  margin-left: -11px;
+}
+
+.quillEditor {
+  background: white;
+  border-radius: 5px;
+  min-height: 100px;
+  padding: 0.75rem;
+
+  p {
+    margin: 0.25rem 0;
+  }
+
+  ul,
+  ol {
+    padding-left: 1.25rem;
+  }
+
+  code {
+    background: #f4f4f4;
+    padding: 0.125rem 0.25rem;
+    border-radius: 3px;
+  }
+}
+
+.userQuestion {
+  color: #007d79;
+  font-weight: 600;
+  margin-left: 1rem;
+  margin-bottom: 0.25rem;
+  white-space: pre-wrap;
+}
+
+.aiAnswerHeader {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.25rem;
+}
+
+@media (max-width: 900px) {
+  .flexContainer {
+    flex-direction: column;
+  }
+
+  .leftColumn {
+    flex: none;
+  }
+
+  .rightColumn {
+    flex: 1;
+    min-height: 0;
+  }
+}
