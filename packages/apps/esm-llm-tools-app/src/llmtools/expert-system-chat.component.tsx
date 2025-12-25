@@ -5,7 +5,10 @@ import { useTranslation } from 'react-i18next';
 import { Copy, SendAltFilled } from '@carbon/react/icons';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+
 import LlmToolsAILabel from './llmtools-label.component';
+import { WordMapAndDiagram } from '../context-aware/expertsystem-context.component';
+import { useOllamaModels } from '../hooks/useOllamaModels';
 
 import styles from './expertsystem-chat.scss';
 
@@ -14,6 +17,7 @@ const ExpertSystemChat = () => {
   const session = useSession();
   const streamingMessageRef = useRef('');
   const [messages, setMessages] = useState<any[]>([]);
+  const { models, loading, modelError } = useOllamaModels();
   const [input, setInput] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
   const [streamingMessage, setStreamingMessage] = useState('');
@@ -29,7 +33,7 @@ const ExpertSystemChat = () => {
   const [openTerms, setOpenTerms] = useState(false);
   const [openPrivacy, setOpenPrivacy] = useState(false);
   const [confidence, setConfidence] = useState<number | null>(null);
-  const [selectedModel, setSelectedModel] = useState('deepseek-r1:1.5b');
+  const [selectedModel, setSelectedModel] = useState<string | null>(null);
   const [temperature, setTemperature] = useState(0.7);
   const [selectedTools, setSelectedTools] = useState<string[]>(['search', 'calculator', 'translator']);
 
@@ -100,8 +104,14 @@ const ExpertSystemChat = () => {
     outputEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
   }, [streamingMessage, messages]);
 
+  useEffect(() => {
+    if (!selectedModel && models.length > 0) {
+      setSelectedModel(models[0]);
+    }
+  }, [models, selectedModel]);
+
   const sendMessage = useCallback(() => {
-    if (!input.trim() || !wsRef.current || isStreaming) return;
+    if (!input.trim() || !wsRef.current || isStreaming || !selectedModel) return;
 
     const requestId = session?.user?.uuid + Date.now().toString();
     requestIdRef.current = requestId;
@@ -161,6 +171,8 @@ const ExpertSystemChat = () => {
     }
   };
 
+  console.error({ models, loading, modelError });
+
   return (
     <div className={styles.expertSystemChat}>
       <div className={styles.container}>
@@ -168,10 +180,10 @@ const ExpertSystemChat = () => {
           <div className={styles.labelPadding}>
             <LlmToolsAILabel />
           </div>
-          <Button kind="ghost" onClick={() => setOpenTerms(true)}>
+          <Button kind="ghost" size="sm" onClick={() => setOpenTerms(true)}>
             Usage terms
           </Button>
-          <Button kind="ghost" onClick={() => setOpenPrivacy(true)}>
+          <Button kind="ghost" size="sm" onClick={() => setOpenPrivacy(true)}>
             Privacy policy
           </Button>
           <Modal
@@ -221,14 +233,17 @@ const ExpertSystemChat = () => {
                   />
                 </div>
                 <div className={styles.modelSelect}>
-                  <p className={styles.controlLabel}>Model</p>
+                  <p className={styles.controlLabel}>
+                    Model {modelError && <span className={styles.errorText}> : Failed to load models!</span>}
+                  </p>
                   <Dropdown
                     id="model-select"
                     label="Model"
                     titleText=""
-                    items={['GPT-4', 'deepseek-r1:1.5b', 'claude-3.5']}
+                    items={models}
                     selectedItem={selectedModel}
                     onChange={(e) => setSelectedModel(e.selectedItem)}
+                    disabled={loading || !!modelError || models.length === 0}
                   />
                 </div>
               </div>
@@ -264,6 +279,10 @@ const ExpertSystemChat = () => {
                 <div className={styles.quillEditor}>
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>{streamingMessage}</ReactMarkdown>
                 </div>
+              )}
+
+              {!isStreaming && streamingMessage === '' && messages.filter((m) => m.type === 'ai').length === 0 && (
+                <WordMapAndDiagram msg={{ text: '' }} />
               )}
 
               {messages

@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "license": "MPL-2.0",
   "description": "LLM tools app for frontend medical practitioners to use A.I ",
-  "browser": "dist/intuvance-esm-llmtools-app.js",
+  "browser": "dist/esm-llm-tools-app.js",
   "main": "src/index.ts",
   "source": true,
   "scripts": {
@@ -60,6 +60,9 @@
     "@carbon/react": "^1.83.0",
     "@langchain/core": "^0.3.75",
     "@langchain/ollama": "^0.2.4",
-    "fuzzy": "^0.1.3"
+    "fuzzy": "^0.1.3",
+    "html-to-image": "^1.11.13",
+    "react-flow-renderer": "^10.3.17",
+    "react-wordcloud": "^1.2.7"
   }
 }

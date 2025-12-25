@@ -14,8 +14,8 @@
 }
 
 .headerSection {
-  margin-left: 0px;
-  margin-top: 8px;
+  justify-content: flex-start;
+  gap: 0.15rem !important;
 }
 
 .flexContainer {
@@ -68,12 +68,11 @@
 }
 
 .streamingContainer {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  overflow-y: auto;
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 .quillEditor {
@@ -92,8 +91,13 @@
   margin-top: 1rem;
 }
 
+.aiMessage,
+.quillEditor {
+  word-break: break-word;
+}
+
 .labelPadding {
-  margin-top: 12px;
+  margin-top: 4px;
   margin-left: 7px;
 }
 
@@ -117,24 +121,26 @@
 
 .textAreaButtonWrapper {
   display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  margin-left: 0px;
+  align-items: stretch;
+  gap: 0.5rem;
 }
 
 .promptTextarea {
-  flex: 1;
-  min-height: 2.5rem;
+  height: 3rem;
+  min-height: 3rem;
   resize: none;
-  padding: 0.5rem;
-  font-size: 0.875rem;
+}
+
+.promptTextarea textarea {
+  height: 100%;
+  line-height: 1.5;
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
 }
 
 .promptSendButton {
   height: 3rem;
-  width: 3rem;
-  margin-top: 2.5px;
-  margin-left: -11px;
+  min-height: 3rem;
 }
 
 .quillEditor {
@@ -173,17 +179,61 @@
   margin-bottom: 0.25rem;
 }
 
-@media (max-width: 900px) {
+.errorText {
+  color: red !important;
+}
+
+/* Tablets, hubs, Pi screens, phones */
+@media (max-width: 1200px) {
   .flexContainer {
     flex-direction: column;
+    height: auto;
+  }
+
+  .leftColumn,
+  .rightColumn {
+    width: 100%;
+    max-width: 100%;
+    min-height: 0;
   }
 
   .leftColumn {
     flex: none;
+    padding-left: 0;
   }
 
   .rightColumn {
     flex: 1;
+    margin-top: 0.25rem;
+  }
+}
+
+/* Small screens/phones */
+@media (max-width: 600px) {
+  .controlsRow {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+
+  .temperatureControl,
+  .toolsMultiSelect,
+  .modelSelect {
+    width: 100%;
+  }
+}
+
+/* Large screens only (side-by-side layout) */
+@media (min-width: 1201px) {
+  .leftColumn {
+    display: flex;
+    flex-direction: column;
     min-height: 0;
+  }
+
+  .llmtpromptpanel {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
   }
 }
