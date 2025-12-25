@@ -1,8 +1,8 @@
 import React from 'react';
 import { IconButton } from '@carbon/react';
 import { CloseIcon, getCoreTranslation } from '@openmrs/esm-framework';
-import styles from './llmtools-popup.styles.scss';
 import ExpertSystemChat from './expert-system-chat.component';
+import styles from './llmtools-popup.styles.scss';
 
 type LlmToolsPopupProps = {
   close(): void;

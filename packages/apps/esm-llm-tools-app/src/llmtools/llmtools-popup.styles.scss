@@ -1,6 +1,7 @@
 @use '@carbon/layout';
 @use '@openmrs/esm-styleguide/src/vars' as *;
 
+/**Change position: to relative to have the popup cover the whole page **/
 .popup {
   position: fixed;
   bottom: 0;

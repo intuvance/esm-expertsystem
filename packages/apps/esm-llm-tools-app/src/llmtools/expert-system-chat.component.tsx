@@ -7,6 +7,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
 import LlmToolsAILabel from './llmtools-label.component';
+import { WordMapAndDiagram } from '../context-aware/expertsystem-context.component';
 import { useOllamaModels } from '../hooks/useOllamaModels';
 
 import styles from './expertsystem-chat.scss';
@@ -179,10 +180,10 @@ const ExpertSystemChat = () => {
           <div className={styles.labelPadding}>
             <LlmToolsAILabel />
           </div>
-          <Button kind="ghost" onClick={() => setOpenTerms(true)}>
+          <Button kind="ghost" size="sm" onClick={() => setOpenTerms(true)}>
             Usage terms
           </Button>
-          <Button kind="ghost" onClick={() => setOpenPrivacy(true)}>
+          <Button kind="ghost" size="sm" onClick={() => setOpenPrivacy(true)}>
             Privacy policy
           </Button>
           <Modal
@@ -278,6 +279,10 @@ const ExpertSystemChat = () => {
                 <div className={styles.quillEditor}>
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>{streamingMessage}</ReactMarkdown>
                 </div>
+              )}
+
+              {!isStreaming && streamingMessage === '' && messages.filter((m) => m.type === 'ai').length === 0 && (
+                <WordMapAndDiagram msg={{ text: '' }} />
               )}
 
               {messages
