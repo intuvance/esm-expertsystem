@@ -117,24 +117,26 @@
 
 .textAreaButtonWrapper {
   display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  margin-left: 0px;
+  align-items: stretch;
+  gap: 0.5rem;
 }
 
 .promptTextarea {
-  flex: 1;
-  min-height: 2.5rem;
+  height: 3rem;
+  min-height: 3rem;
   resize: none;
-  padding: 0.5rem;
-  font-size: 0.875rem;
+}
+
+.promptTextarea textarea {
+  height: 100%;
+  line-height: 1.5;
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
 }
 
 .promptSendButton {
   height: 3rem;
-  width: 3rem;
-  margin-top: 2.5px;
-  margin-left: -11px;
+  min-height: 3rem;
 }
 
 .quillEditor {
