@@ -3,12 +3,17 @@ import classNames from 'classnames';
 import { Button } from '@carbon/react';
 import { type AppProps } from 'single-spa';
 import LlmToolsPopup from './llmtools-popup.component';
+import { useConfig } from '@openmrs/esm-framework';
 import styles from './llmtools.styles.scss';
 
-const showLlmTools = () => window.spaEnv === 'development' || Boolean(localStorage.getItem('openmrs:llmtools'));
+function useShowLlmTools() {
+  const config = useConfig();
+  return window.spaEnv === 'development' || config.llmTools?.enabled === true;
+}
 
 export default function Root(props: AppProps) {
-  return showLlmTools() ? <LlmTools {...props} /> : null;
+  const showLlmTools = useShowLlmTools();
+  return showLlmTools ? <LlmTools {...props} /> : null;
 }
 
 function LlmTools(props: AppProps) {
