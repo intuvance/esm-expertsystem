@@ -1,13 +1,11 @@
 import { Type } from '@openmrs/esm-framework';
 
-const configSchema = {
-  llmTools: {
+export const configSchema = {
+  llmtools: {
     enabled: {
       _type: Type.Boolean,
-      _default: false,
-      _description: 'Enable LLM Tools UI',
+      _default: true,
+      _description: 'Enable the LLM Tools UI',
     },
   },
 };
-
-export default configSchema;
