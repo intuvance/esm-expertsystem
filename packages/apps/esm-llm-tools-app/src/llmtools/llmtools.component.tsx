@@ -3,26 +3,15 @@ import classNames from 'classnames';
 import { Button } from '@carbon/react';
 import { type AppProps } from 'single-spa';
 import LlmToolsPopup from './llmtools-popup.component';
-import { useConfig } from '@openmrs/esm-framework';
 import styles from './llmtools.styles.scss';
 
-function useShowLlmTools() {
-  const config = useConfig();
-  return window.spaEnv === 'development' || config.llmTools?.enabled === true;
-}
-
-export default function Root(props: AppProps) {
-  const showLlmTools = useShowLlmTools();
-  return showLlmTools ? <LlmTools {...props} /> : null;
-}
-
-function LlmTools(props: AppProps) {
+export default function LlmTools(props: AppProps) {
   const [llmToolsOpen, setLlmToolsOpen] = useState(false);
   const [llmToolsButtonVisible, setLlmToolsButtonVisible] = useState(true);
 
   const toggleLlmTools = () => {
     setLlmToolsButtonVisible(!llmToolsButtonVisible);
-    setLlmToolsOpen((llmToolsOpen) => !llmToolsOpen);
+    setLlmToolsOpen((open) => !open);
   };
 
   const toggleHidden = (hidden: boolean) => {
@@ -39,7 +28,7 @@ function LlmTools(props: AppProps) {
           onClick={toggleLlmTools}
           size="md"
           hasIconOnly
-        ></Button>
+        />
       )}
 
       {llmToolsOpen && <LlmToolsPopup close={toggleLlmTools} toggleOverridden={toggleHidden} />}

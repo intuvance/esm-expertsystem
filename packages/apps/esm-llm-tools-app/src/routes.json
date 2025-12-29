@@ -1,17 +1,13 @@
 {
   "$schema": "https://json.openmrs.org/routes.schema.json",
-  "pages": [
+  "pages": [],
+  "extensions": [
     {
-      "component": "llmtools",
-      "route": true,
+      "name": "llmtools",
+      "slot": "top-nav-actions-slot",
+      "component": "root",
       "online": true,
       "offline": true
-    }
-  ],
-  "modals": [
-    {
-      "name": "importmap-override-modal",
-      "component": "importmapOverrideModal"
     }
   ]
 }
