@@ -1,12 +1,8 @@
 {
   "compilerOptions": {
-    "esModuleInterop": true,
-    "module": "esnext",
-    "target": "es2015",
     "allowSyntheticDefaultImports": true,
-    "jsx": "react",
-    "skipLibCheck": true,
-    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "jsx": "react-jsx",
     "lib": [
       "dom",
       "es5",
@@ -18,7 +14,18 @@
       "es2020",
       "es2022"
     ],
-    "noEmit": true
+    "module": "esnext",
+    "moduleResolution": "node",
+    "noEmit": true,
+    "paths": {
+      "@openmrs/*": ["./node_modules/@openmrs/*"],
+      "__mocks__": ["./__mocks__"],
+      "tools": ["./tools"]
+    },
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "target": "esnext",
+    "types": ["react", "react-dom", "fhir"]
   },
   "include": ["src/**/*"]
 }
