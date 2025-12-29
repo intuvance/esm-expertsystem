@@ -1,7 +1,6 @@
 @use '@carbon/layout';
 @use '@openmrs/esm-styleguide/src/vars' as *;
 
-/**Change position: to relative to have the popup cover the whole page **/
 .popup {
   position: fixed;
   bottom: 0;
@@ -33,8 +32,7 @@
 
 .farRight {
   position: absolute;
-  right: layout.$spacing-04;
-  top: layout.$spacing-04;
-  display: flex;
-  z-index: 1000;
+  top: 2px;
+  right: 18px;
+  z-index: 10;
 }
