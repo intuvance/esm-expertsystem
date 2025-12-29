@@ -1,17 +1,9 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useMemo } from 'react';
 import { Button } from '@carbon/react';
 import { toPng } from 'html-to-image';
 import { Download } from '@carbon/react/icons';
 import ReactWordcloud, { type Options } from 'react-wordcloud';
-import ReactFlow, {
-  getRectOfNodes,
-  getTransformForBounds,
-  Background,
-  Controls,
-  MiniMap,
-  type Node,
-  type Edge,
-} from 'react-flow-renderer';
+import ReactFlow, { Background, Controls, MiniMap, type Node, type Edge } from 'react-flow-renderer';
 import styles from './expertsystem-context.styles.scss';
 
 const openmrsColors = ['#F26522', '#5B57A6', '#EEA616', '#009384', '#231F20'];
@@ -46,68 +38,70 @@ export const WordMapAndDiagram: React.FC<WordMapProps> = ({ msg }) => {
   const wordcloudRef = useRef<HTMLDivElement>(null);
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
 
-  const defaultOptions = {
-    svgAttributes: {},
-    textAttributes: {},
-    tooltipOptions: {},
-  };
+  const defaultOptions = { svgAttributes: {}, textAttributes: {}, tooltipOptions: {} };
 
-  const wordcloudOptions: Options = {
-    rotations: 2,
-    rotationAngles: [0, 0],
-    fontSizes: [15, 40] as [number, number],
-    fontFamily: 'impact, sans-serif',
-    fontStyle: 'normal',
-    fontWeight: 'normal',
-    padding: 1,
-    colors: openmrsColors,
-    enableTooltip: true,
-    deterministic: true,
-    scale: 'sqrt',
-    spiral: 'rectangular',
-    transitionDuration: 500,
-    enableOptimizations: false,
-    ...defaultOptions,
-  };
+  const wordcloudOptions: Options = useMemo(
+    () => ({
+      rotations: 2,
+      rotationAngles: [0, 0],
+      fontSizes: [15, 40] as [number, number],
+      fontFamily: 'impact, sans-serif',
+      fontStyle: 'normal',
+      fontWeight: 'normal',
+      padding: 1,
+      colors: openmrsColors,
+      enableTooltip: true,
+      deterministic: true,
+      scale: 'sqrt',
+      spiral: 'rectangular',
+      transitionDuration: 0,
+      enableOptimizations: false,
+      ...defaultOptions,
+    }),
+    [],
+  );
 
-  const wordcloudCallbacks = {
-    getWordTooltip: (word: any) => word.tooltip || word.text,
-  };
+  const wordcloudCallbacks = useMemo(
+    () => ({
+      getWordTooltip: (word: any) => word.tooltip || word.text,
+    }),
+    [],
+  );
 
   const wordcloudSize: [number, number] = [800, 400];
 
-  const nodes: Node[] = [
-    { id: 'patient', type: 'default', data: { label: 'Patient' }, position: { x: 400, y: 50 } },
-    { id: 'person', type: 'default', data: { label: 'Person' }, position: { x: 200, y: 150 } },
-    { id: 'encounter', type: 'default', data: { label: 'Encounter' }, position: { x: 400, y: 250 } },
-    { id: 'observation', type: 'default', data: { label: 'Observation' }, position: { x: 200, y: 350 } },
-    { id: 'diagnosis', type: 'default', data: { label: 'Diagnosis' }, position: { x: 600, y: 350 } },
-    { id: 'visit', type: 'default', data: { label: 'Visit' }, position: { x: 400, y: 450 } },
-    { id: 'allergy', type: 'default', data: { label: 'Allergy' }, position: { x: 800, y: 50 } },
-    { id: 'program', type: 'default', data: { label: 'Program' }, position: { x: 0, y: 50 } },
-    { id: 'relationship', type: 'default', data: { label: 'Relationship' }, position: { x: 0, y: 250 } },
-  ];
+  const nodes: Node[] = useMemo(
+    () => [
+      { id: 'patient', type: 'default', data: { label: 'Patient' }, position: { x: 400, y: 50 } },
+      { id: 'person', type: 'default', data: { label: 'Person' }, position: { x: 200, y: 150 } },
+      { id: 'encounter', type: 'default', data: { label: 'Encounter' }, position: { x: 400, y: 250 } },
+      { id: 'observation', type: 'default', data: { label: 'Observation' }, position: { x: 200, y: 350 } },
+      { id: 'diagnosis', type: 'default', data: { label: 'Diagnosis' }, position: { x: 600, y: 350 } },
+      { id: 'visit', type: 'default', data: { label: 'Visit' }, position: { x: 400, y: 450 } },
+      { id: 'allergy', type: 'default', data: { label: 'Allergy' }, position: { x: 800, y: 50 } },
+      { id: 'program', type: 'default', data: { label: 'Program' }, position: { x: 0, y: 50 } },
+      { id: 'relationship', type: 'default', data: { label: 'Relationship' }, position: { x: 0, y: 250 } },
+    ],
+    [],
+  );
 
-  const edges: Edge[] = [
-    { id: 'p-person', source: 'patient', target: 'person', label: 'is a' },
-    { id: 'p-encounter', source: 'patient', target: 'encounter', label: 'has' },
-    { id: 'p-allergy', source: 'patient', target: 'allergy', label: 'has' },
-    { id: 'p-program', source: 'patient', target: 'program', label: 'enrolled in' },
-    { id: 'person-relationship', source: 'person', target: 'relationship', label: 'participates in' },
-    { id: 'encounter-observation', source: 'encounter', target: 'observation', label: 'records' },
-    { id: 'encounter-diagnosis', source: 'encounter', target: 'diagnosis', label: 'diagnosed with' },
-    { id: 'encounter-visit', source: 'encounter', target: 'visit', label: 'grouped into' },
-  ];
-
-  if (msg.text) return null;
+  const edges: Edge[] = useMemo(
+    () => [
+      { id: 'p-person', source: 'patient', target: 'person', label: 'is a' },
+      { id: 'p-encounter', source: 'patient', target: 'encounter', label: 'has' },
+      { id: 'p-allergy', source: 'patient', target: 'allergy', label: 'has' },
+      { id: 'p-program', source: 'patient', target: 'program', label: 'enrolled in' },
+      { id: 'person-relationship', source: 'person', target: 'relationship', label: 'participates in' },
+      { id: 'encounter-observation', source: 'encounter', target: 'observation', label: 'records' },
+      { id: 'encounter-diagnosis', source: 'encounter', target: 'diagnosis', label: 'diagnosed with' },
+      { id: 'encounter-visit', source: 'encounter', target: 'visit', label: 'grouped into' },
+    ],
+    [],
+  );
 
   const exportWordcloud = async () => {
     if (!wordcloudRef.current) return;
-
-    const dataUrl = await toPng(wordcloudRef.current, {
-      backgroundColor: '#ffffff',
-    });
-
+    const dataUrl = await toPng(wordcloudRef.current, { backgroundColor: '#ffffff' });
     const link = document.createElement('a');
     link.download = 'openmrs-ai-context-wordcloud.png';
     link.href = dataUrl;
@@ -116,16 +110,19 @@ export const WordMapAndDiagram: React.FC<WordMapProps> = ({ msg }) => {
 
   const exportDiagram = async () => {
     if (!reactFlowWrapper.current) return;
-
-    const dataUrl = await toPng(reactFlowWrapper.current, {
-      backgroundColor: '#ffffff',
-    });
-
+    const dataUrl = await toPng(reactFlowWrapper.current, { backgroundColor: '#ffffff' });
     const link = document.createElement('a');
     link.download = 'openmrs-ai-context-diagram.png';
     link.href = dataUrl;
     link.click();
   };
+
+  const memoizedWordcloud = useMemo(
+    () => (
+      <ReactWordcloud words={words} options={wordcloudOptions} callbacks={wordcloudCallbacks} size={wordcloudSize} />
+    ),
+    [],
+  );
 
   return (
     <div className={styles.contextStyles}>
@@ -162,12 +159,7 @@ export const WordMapAndDiagram: React.FC<WordMapProps> = ({ msg }) => {
       ) : (
         <div className={styles.reactWordcloudContainer}>
           <div className={styles.reactWordcloud} ref={wordcloudRef}>
-            <ReactWordcloud
-              words={words}
-              options={wordcloudOptions}
-              callbacks={wordcloudCallbacks}
-              size={wordcloudSize}
-            />
+            {memoizedWordcloud}
           </div>
         </div>
       )}
