@@ -12,22 +12,8 @@
   border-top: 2px solid $ui-05;
   color: $color-gray-100;
   box-sizing: border-box;
-}
-
-.tabs {
-  width: 100%;
-}
-
-.tabList {
-  position: fixed;
-  height: layout.$spacing-10;
-  width: 100%;
-  z-index: 1000;
-  background-color: black;
-}
-
-.tabPanels {
-  padding: layout.$spacing-06;
+  display: flex;
+  flex-direction: column;
 }
 
 .farRight {

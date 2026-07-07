@@ -2,22 +2,36 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useSession } from '@openmrs/esm-framework';
 import { Button, CodeSnippet, IconButton, Modal, TextArea, Dropdown, Slider, Stack, MultiSelect } from '@carbon/react';
 import { useTranslation } from 'react-i18next';
-import { Copy, SendAltFilled } from '@carbon/react/icons';
+import { Copy, SendAltFilled, StopFilled, ChevronDown, Information } from '@carbon/react/icons';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
 import LlmToolsAILabel from './llmtools-label.component';
 import { WordMapAndDiagram } from '../context-aware/expertsystem-context.component';
 import { useOllamaModels } from '../hooks/useOllamaModels';
+import { useAvailableTools, type ToolSpec } from '../hooks/useAvailableTools';
 
 import styles from './expertsystem-chat.scss';
+
+interface ChatMessage {
+  id: string;
+  text: string;
+  type: 'user' | 'ai';
+  question?: string;
+  isComplete?: boolean;
+  sql?: string;
+  confidence?: number | null;
+  tools?: string[];
+}
 
 const ExpertSystemChat = () => {
   const { t } = useTranslation();
   const session = useSession();
   const streamingMessageRef = useRef('');
-  const [messages, setMessages] = useState<any[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const { models, loading, modelError } = useOllamaModels();
+  const { tools: availableTools, loading: toolsLoading, error: toolsError } = useAvailableTools();
+
   const [input, setInput] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
   const [streamingMessage, setStreamingMessage] = useState('');
@@ -35,12 +49,24 @@ const ExpertSystemChat = () => {
   const [confidence, setConfidence] = useState<number | null>(null);
   const [selectedModel, setSelectedModel] = useState<string | null>(null);
   const [temperature, setTemperature] = useState(0.7);
-  const [selectedTools, setSelectedTools] = useState<string[]>(['search', 'calculator', 'translator']);
+  const [selectedToolNames, setSelectedToolNames] = useState<string[]>([]);
+  const [activeToolCalls, setActiveToolCalls] = useState<string[]>([]);
+  const [expandedMessages, setExpandedMessages] = useState<Set<string>>(new Set());
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalContent, setModalContent] = useState('');
+  const [modalTitle, setModalTitle] = useState('');
 
   const wsRef = useRef<WebSocket | null>(null);
   const requestIdRef = useRef<string | null>(null);
   const outputEndRef = useRef<HTMLDivElement | null>(null);
   const lastQuestionRef = useRef<string>('');
+  const messageRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+
+  const toolItems = availableTools.map((t) => ({
+    id: t.name,
+    label: t.name,
+    description: t.description,
+  }));
 
   const getWebSocketUrl = useCallback((): string => {
     let baseUrl =
@@ -65,22 +91,29 @@ const ExpertSystemChat = () => {
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        if (data.type === 'token') {
+        if (data.type === 'tool_call') {
+          setActiveToolCalls((prev) => [...prev, ...(data.tools || [])]);
+        } else if (data.type === 'tool_result') {
+          setActiveToolCalls((prev) => prev.filter((t) => t !== data.tool));
+        } else if (data.type === 'token') {
           streamingMessageRef.current += data.data;
           setStreamingMessage(streamingMessageRef.current);
         } else if (data.type === 'done') {
-          const newMessage = {
+          const newMessage: ChatMessage = {
             id: session?.user?.uuid + Date.now(),
             question: lastQuestionRef.current,
             text: streamingMessageRef.current + (data.data || ''),
             type: 'ai',
             isComplete: true,
             sql: data.sql || '',
+            confidence: data.confidence ?? null,
+            tools: activeToolCalls.length > 0 ? [...activeToolCalls] : undefined,
           };
           setMessages((prev) => [...prev, newMessage]);
           streamingMessageRef.current = '';
           setStreamingMessage('');
           setIsStreaming(false);
+          setActiveToolCalls([]);
 
           if (data.confidence) setConfidence(data.confidence);
           if (data.sql) {
@@ -90,6 +123,7 @@ const ExpertSystemChat = () => {
         } else if (data.type === 'error') {
           setError(data.data);
           setIsStreaming(false);
+          setActiveToolCalls([]);
         }
       } catch (err) {
         console.error('Error parsing message:', err);
@@ -110,6 +144,12 @@ const ExpertSystemChat = () => {
     }
   }, [models, selectedModel]);
 
+  useEffect(() => {
+    if (selectedToolNames.length === 0 && availableTools.length > 0 && !toolsLoading) {
+      setSelectedToolNames(availableTools.map((t) => t.name));
+    }
+  }, [availableTools, toolsLoading]);
+
   const sendMessage = useCallback(() => {
     if (!input.trim() || !wsRef.current || isStreaming || !selectedModel) return;
 
@@ -118,24 +158,47 @@ const ExpertSystemChat = () => {
 
     const question = input;
     lastQuestionRef.current = question;
+    setActiveToolCalls([]);
+
+    const toolSpecs = availableTools
+      .filter((t) => selectedToolNames.includes(t.name))
+      .map((t) => ({
+        name: t.name,
+        description: t.description,
+        parameters: t.parameters,
+        ...(t.required ? { required: t.required } : {}),
+      }));
 
     setMessages((prev) => [...prev, { id: session?.user?.uuid + Date.now().toString(), text: question, type: 'user' }]);
 
-    const payload = {
+    const payload: Record<string, unknown> = {
       requestId,
       model: selectedModel,
       messages: [{ type: 'USER', text: question }],
       options: { temperature, think: false },
-      tools: selectedTools,
       stream: true,
     };
+
+    if (toolSpecs.length > 0) {
+      payload.tools = toolSpecs;
+    }
 
     wsRef.current.send(JSON.stringify(payload));
     setIsStreaming(true);
     setStreamingMessage('');
     setInput('');
     setShowSql(false);
-  }, [input, isStreaming, selectedModel, temperature, selectedTools]);
+  }, [input, isStreaming, selectedModel, temperature, selectedToolNames, availableTools, session]);
+
+  const stopStreaming = useCallback(() => {
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({ requestId: requestIdRef.current, action: 'stop' }));
+    }
+    setIsStreaming(false);
+    setStreamingMessage('');
+    streamingMessageRef.current = '';
+    setActiveToolCalls([]);
+  }, []);
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -144,7 +207,7 @@ const ExpertSystemChat = () => {
     }
   };
 
-  const handleToolChange = (data: { selectedItems: string[] }) => setSelectedTools(data.selectedItems);
+  const handleToolChange = (data: { selectedItems: string[] }) => setSelectedToolNames(data.selectedItems);
   const handleTemperatureChange = (data: { value: number; valueUpper?: number }) => setTemperature(data.value);
 
   const handleAcceptLlmToolsTerms = async () => {
@@ -171,7 +234,39 @@ const ExpertSystemChat = () => {
     }
   };
 
-  console.error({ models, loading, modelError });
+  const toggleExpand = (msgId: string, text: string) => {
+    setExpandedMessages((prev) => {
+      const next = new Set(prev);
+      if (next.has(msgId)) {
+        next.delete(msgId);
+      } else {
+        next.add(msgId);
+      }
+      return next;
+    });
+  };
+
+  const openModal = (title: string, content: string) => {
+    setModalTitle(title);
+    setModalContent(content);
+    setModalOpen(true);
+  };
+
+  const registerMessageRef = (id: string, el: HTMLDivElement | null) => {
+    if (el) {
+      messageRefs.current.set(id, el);
+    } else {
+      messageRefs.current.delete(id);
+    }
+  };
+
+  const isOverflowing = (msgId: string): boolean => {
+    const el = messageRefs.current.get(msgId);
+    if (!el) return false;
+    return el.scrollHeight > el.clientHeight + 2;
+  };
+
+  console.error({ models, loading, modelError, tools: availableTools.length, toolsLoading });
 
   return (
     <div className={styles.expertSystemChat}>
@@ -214,102 +309,189 @@ const ExpertSystemChat = () => {
 
         <div className={styles.horizontalDivider}></div>
 
-        <div className={styles.flexContainer}>
-          <div className={styles.leftColumn}>
-            <div className={styles.llmtpromptpanel}>
-              <div className={styles.controlsRow}>
-                <div className={styles.temperatureControl}>
-                  <p className={styles.controlLabel}>Temperature</p>
-                  <Slider min={0} max={1} step={0.1} value={temperature} onChange={handleTemperatureChange} />
-                </div>
-                <div className={styles.toolsMultiSelect}>
-                  <MultiSelect
-                    id="tools-multiselect"
-                    label="Select tools"
-                    titleText="Tools"
-                    items={['search', 'calculator', 'translator']}
-                    initialSelectedItems={selectedTools}
-                    onChange={handleToolChange}
-                  />
-                </div>
-                <div className={styles.modelSelect}>
-                  <p className={styles.controlLabel}>
-                    Model {modelError && <span className={styles.errorText}> : Failed to load models!</span>}
-                  </p>
-                  <Dropdown
-                    id="model-select"
-                    label="Model"
-                    titleText=""
-                    items={models}
-                    selectedItem={selectedModel}
-                    onChange={(e) => setSelectedModel(e.selectedItem)}
-                    disabled={loading || !!modelError || models.length === 0}
-                  />
-                </div>
-              </div>
+        <div className={styles.bodyColumn}>
+          <div className={styles.streamingContainer}>
+            {isStreaming && lastQuestionRef.current && (
+              <div className={styles.userQuestion}>{lastQuestionRef.current}</div>
+            )}
 
-              <p className={styles.promptLabel}>{t('prompt', 'Your question')}</p>
-
-              <div className={styles.textAreaButtonWrapper}>
-                <TextArea
-                  id="expert-system-prompt"
-                  placeholder={t('aiPrompt', 'Enter your question...')}
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  rows={1}
-                  className={styles.promptTextarea}
-                  onKeyPress={handleKeyPress}
-                  labelText={''}
-                />
-
-                <IconButton kind="primary" label="Send" onClick={sendMessage} className={styles.promptSendButton}>
-                  <SendAltFilled />
-                </IconButton>
-              </div>
-            </div>
-          </div>
-
-          <div className={styles.rightColumn}>
-            <div className={styles.streamingContainer}>
-              {isStreaming && lastQuestionRef.current && (
-                <div className={styles.userQuestion}>{lastQuestionRef.current}</div>
-              )}
-
-              {streamingMessage && (
+            {(streamingMessage || isStreaming) && (
+              <div className={styles.streamingAnswer}>
+                {activeToolCalls.length > 0 && (
+                  <div className={styles.toolCallsIndicator}>
+                    <span className={styles.toolCallDot}></span>
+                    Using tools: {activeToolCalls.join(', ')}
+                  </div>
+                )}
                 <div className={styles.quillEditor}>
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>{streamingMessage}</ReactMarkdown>
                 </div>
-              )}
+              </div>
+            )}
 
-              {!isStreaming && streamingMessage === '' && messages.filter((m) => m.type === 'ai').length === 0 && (
-                <WordMapAndDiagram msg={{ text: '' }} />
-              )}
+            {!isStreaming && streamingMessage === '' && messages.filter((m) => m.type === 'ai').length === 0 && (
+              <WordMapAndDiagram msg={{ text: '' }} />
+            )}
 
-              {messages
-                .filter((m) => m.type === 'ai')
-                .map((msg) => (
+            {messages
+              .filter((m) => m.type === 'ai')
+              .map((msg) => {
+                const isExpanded = expandedMessages.has(msg.id);
+                const hasOverflow = !isExpanded && isOverflowing(msg.id);
+
+                return (
                   <div key={msg.id} className={styles.aiMessage}>
                     {msg.question && <div className={styles.userQuestion}>{msg.question}</div>}
+
+                    {msg.tools && msg.tools.length > 0 && (
+                      <div className={styles.toolCallsIndicator}>
+                        <span className={styles.toolCallDot}></span>
+                        Used tools: {msg.tools.join(', ')}
+                      </div>
+                    )}
 
                     <div className={styles.aiAnswerHeader}>
                       <IconButton kind="ghost" size="sm" label="Copy" onClick={() => copyToClipboard(msg.text)}>
                         <Copy />
                       </IconButton>
+                      <span className={styles.headerActions}>
+                        <IconButton
+                          kind="ghost"
+                          size="sm"
+                          label={isExpanded ? 'Show less' : 'Read more'}
+                          onClick={() => toggleExpand(msg.id, msg.text)}
+                          title={isExpanded ? 'Collapse' : 'Expand full response'}
+                          disabled={!msg.isComplete}
+                        >
+                          <ChevronDown size={16} style={isExpanded ? { transform: 'rotate(180deg)' } : undefined} />
+                        </IconButton>
+                        {msg.confidence != null && (
+                          <span className={styles.confidenceBadge}>
+                            Confidence: {Math.round((msg.confidence as number) * 100)}%
+                          </span>
+                        )}
+                      </span>
                     </div>
 
-                    <div className={styles.quillEditor}>
+                    <div
+                      ref={(el) => registerMessageRef(msg.id, el)}
+                      className={`${styles.quillEditor} ${!isExpanded ? styles.quillEditorClamped : ''}`}
+                    >
                       <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.text}</ReactMarkdown>
                     </div>
 
+                    {hasOverflow && (
+                      <button
+                        type="button"
+                        className={styles.readMoreButton}
+                        onClick={() => openModal(msg.question || 'Full response', msg.text)}
+                        title="View full response in a scrollable modal"
+                      >
+                        <Information size={16} />
+                        <span>Read More</span>
+                      </button>
+                    )}
+
+                    {msg.isComplete && isExpanded && (
+                      <button
+                        type="button"
+                        className={styles.readLessButton}
+                        onClick={() => toggleExpand(msg.id, msg.text)}
+                      >
+                        Show less
+                      </button>
+                    )}
+
                     {msg.sql && <CodeSnippet type="multi">{msg.sql}</CodeSnippet>}
                   </div>
-                ))}
+                );
+              })}
 
-              <div ref={outputEndRef} />
+            <div ref={outputEndRef} />
+          </div>
+
+          <div className={styles.controlsPanel}>
+            <div className={styles.controlsRow}>
+              <div className={styles.temperatureControl}>
+                <p className={styles.controlLabel}>Temperature</p>
+                <Slider min={0} max={1} step={0.1} value={temperature} onChange={handleTemperatureChange} />
+              </div>
+              <div className={styles.toolsMultiSelect}>
+                <MultiSelect
+                  id="tools-multiselect"
+                  label="Select tools"
+                  titleText="Tools"
+                  items={toolItems as any}
+                  initialSelectedItems={selectedToolNames}
+                  onChange={handleToolChange}
+                  disabled={toolsLoading || !!toolsError}
+                />
+                {toolsError && <p className={styles.toolsErrorHint}>Showing built-in tools</p>}
+              </div>
+              <div className={styles.modelSelect}>
+                <p className={styles.controlLabel}>
+                  Model {modelError && <span className={styles.errorText}> : Failed to load models!</span>}
+                </p>
+                <Dropdown
+                  id="model-select"
+                  label="Model"
+                  titleText=""
+                  items={models}
+                  selectedItem={selectedModel}
+                  onChange={(e) => setSelectedModel(e.selectedItem)}
+                  disabled={loading || !!modelError || models.length === 0}
+                />
+              </div>
+            </div>
+
+            <div className={styles.promptLabel}>{t('prompt', 'Your question')}</div>
+
+            <div className={styles.textAreaButtonWrapper}>
+              <TextArea
+                id="expert-system-prompt"
+                placeholder={t('aiPrompt', 'Enter your question...')}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                rows={3}
+                className={styles.promptTextarea}
+                onKeyPress={handleKeyPress}
+                labelText={''}
+              />
+              <div className={styles.overlayButtonGroup}>
+                {isStreaming ? (
+                  <IconButton kind="primary" label="Stop" onClick={stopStreaming} className={styles.overlayIconButton}>
+                    <StopFilled size={16} />
+                  </IconButton>
+                ) : (
+                  <IconButton
+                    kind="primary"
+                    label="Send"
+                    onClick={sendMessage}
+                    className={styles.overlayIconButton}
+                    disabled={!input.trim()}
+                  >
+                    <SendAltFilled size={16} />
+                  </IconButton>
+                )}
+              </div>
             </div>
           </div>
         </div>
       </div>
+
+      <Modal
+        open={modalOpen}
+        onRequestClose={() => setModalOpen(false)}
+        modalHeading={modalTitle}
+        modalLabel="Full response"
+        primaryButtonText={t('cancel', 'Close')}
+        onRequestSubmit={() => setModalOpen(false)}
+        size="lg"
+      >
+        <div className={styles.modalContent}>
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>{modalContent}</ReactMarkdown>
+        </div>
+      </Modal>
     </div>
   );
 };
