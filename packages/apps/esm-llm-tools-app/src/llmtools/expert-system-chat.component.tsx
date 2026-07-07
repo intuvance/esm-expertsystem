@@ -12,6 +12,7 @@ import { useOllamaModels } from '../hooks/useOllamaModels';
 import { useAvailableTools, type ToolSpec } from '../hooks/useAvailableTools';
 
 import styles from './expertsystem-chat.scss';
+import { setResponse, getResponse } from '../utils/localStorage';
 
 interface ChatMessage {
   id: string;
@@ -46,6 +47,10 @@ const ExpertSystemChat = () => {
   const [privacyDescription, setPrivacyDescription] = useState('Accepting privacy policy...');
   const [openTerms, setOpenTerms] = useState(false);
   const [openPrivacy, setOpenPrivacy] = useState(false);
+  const [termsContent, setTermsContent] = useState<string>('');
+  const [privacyContent, setPrivacyContent] = useState<string>('');
+  const [termsFileName, setTermsFileName] = useState<string>('');
+  const [privacyFileName, setPrivacyFileName] = useState<string>('');
   const [confidence, setConfidence] = useState<number | null>(null);
   const [selectedModel, setSelectedModel] = useState<string | null>(null);
   const [temperature, setTemperature] = useState(0.7);
@@ -157,6 +162,46 @@ const ExpertSystemChat = () => {
     }
   }, [availableTools, toolsLoading]);
 
+  useEffect(() => {
+    const storedTerms = getResponse('esm_llm_tools_terms_accepted');
+    const storedPrivacy = getResponse('esm_llm_tools_privacy_accepted');
+    if (storedTerms) setAcceptLlmToolsTerms(true);
+    if (storedPrivacy) setAcceptLlmToolsPrivacy(true);
+  }, []);
+
+  const readFileContent = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target?.result as string);
+      reader.onerror = reject;
+      reader.readAsText(file);
+    });
+  };
+
+  const handleTermsFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const content = await readFileContent(file);
+      setTermsContent(content);
+      setTermsFileName(file.name);
+    } catch (err) {
+      console.error('Failed to read terms file:', err);
+    }
+  };
+
+  const handlePrivacyFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const content = await readFileContent(file);
+      setPrivacyContent(content);
+      setPrivacyFileName(file.name);
+    } catch (err) {
+      console.error('Failed to read privacy file:', err);
+    }
+  };
+
   const sendMessage = useCallback(() => {
     if (!input.trim() || !wsRef.current || isStreaming || !selectedModel) return;
 
@@ -223,6 +268,7 @@ const ExpertSystemChat = () => {
     await new Promise((r) => setTimeout(r, 2000));
     setTermsDescription('Accepted terms of use!');
     setTermsStatus('finished');
+    setResponse('esm_llm_tools_terms_accepted', true);
   };
 
   const handleAcceptLlmToolsPrivacyPolicy = async () => {
@@ -231,6 +277,7 @@ const ExpertSystemChat = () => {
     await new Promise((r) => setTimeout(r, 2000));
     setPrivacyDescription('Accepted privacy policy!');
     setPrivacyStatus('finished');
+    setResponse('esm_llm_tools_privacy_accepted', true);
   };
 
   const copyToClipboard = async (text: string) => {
@@ -297,11 +344,11 @@ const ExpertSystemChat = () => {
               View Response
             </Button>
           )}
-          <Button kind="ghost" size="sm" onClick={() => setOpenTerms(true)}>
-            Usage terms
+          <Button kind="ghost" size="sm" onClick={() => setOpenTerms(true)} disabled={acceptLlmToolsTerms}>
+            {acceptLlmToolsTerms ? 'Terms Accepted' : 'Usage terms'}
           </Button>
-          <Button kind="ghost" size="sm" onClick={() => setOpenPrivacy(true)}>
-            Privacy policy
+          <Button kind="ghost" size="sm" onClick={() => setOpenPrivacy(true)} disabled={acceptLlmToolsPrivacy}>
+            {acceptLlmToolsPrivacy ? 'Privacy Accepted' : 'Privacy policy'}
           </Button>
           <Modal
             open={openTerms}
@@ -314,7 +361,30 @@ const ExpertSystemChat = () => {
             onRequestSubmit={handleAcceptLlmToolsTerms}
             loadingStatus={termsStatus}
             loadingDescription={termsDescription}
-          />
+          >
+            <div className={styles.termsUploadSection}>
+              <label htmlFor="terms-file-upload" className={styles.termsUploadLabel}>
+                Upload Terms Document
+              </label>
+              <input
+                id="terms-file-upload"
+                type="file"
+                accept=".txt,.md,.html"
+                onChange={handleTermsFileUpload}
+                className={styles.termsFileInput}
+              />
+              {termsFileName && <p className={styles.termsFileName}>Uploaded: {termsFileName}</p>}
+            </div>
+            {termsContent && (
+              <div className={styles.termsDocumentContent}>
+                {termsFileName.endsWith('.html') ? (
+                  <iframe srcDoc={termsContent} title="terms document" sandbox="" />
+                ) : (
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{termsContent}</ReactMarkdown>
+                )}
+              </div>
+            )}
+          </Modal>
           <Modal
             open={openPrivacy}
             onRequestClose={() => setOpenPrivacy(false)}
@@ -326,7 +396,30 @@ const ExpertSystemChat = () => {
             onRequestSubmit={handleAcceptLlmToolsPrivacyPolicy}
             loadingStatus={privacyStatus}
             loadingDescription={privacyDescription}
-          />
+          >
+            <div className={styles.termsUploadSection}>
+              <label htmlFor="privacy-file-upload" className={styles.termsUploadLabel}>
+                Upload Privacy Document
+              </label>
+              <input
+                id="privacy-file-upload"
+                type="file"
+                accept=".txt,.md,.html"
+                onChange={handlePrivacyFileUpload}
+                className={styles.termsFileInput}
+              />
+              {privacyFileName && <p className={styles.termsFileName}>Uploaded: {privacyFileName}</p>}
+            </div>
+            {privacyContent && (
+              <div className={styles.termsDocumentContent}>
+                {privacyFileName.endsWith('.html') ? (
+                  <iframe srcDoc={privacyContent} title="privacy document" sandbox="" />
+                ) : (
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{privacyContent}</ReactMarkdown>
+                )}
+              </div>
+            )}
+          </Modal>
         </Stack>
 
         <div className={styles.horizontalDivider}></div>
