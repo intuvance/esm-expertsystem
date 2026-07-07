@@ -306,6 +306,8 @@ const ExpertSystemChat = () => {
     setModalOpen(true);
   };
 
+  const isSuperUser = (session?.user?.roles || []).some((r) => /has super user privileges/i.test(r.display));
+
   const registerMessageRef = (id: string, el: HTMLDivElement | null) => {
     if (el) {
       messageRefs.current.set(id, el);
@@ -362,19 +364,21 @@ const ExpertSystemChat = () => {
             loadingStatus={termsStatus}
             loadingDescription={termsDescription}
           >
-            <div className={styles.termsUploadSection}>
-              <label htmlFor="terms-file-upload" className={styles.termsUploadLabel}>
-                Upload Terms Document
-              </label>
-              <input
-                id="terms-file-upload"
-                type="file"
-                accept=".txt,.md,.html"
-                onChange={handleTermsFileUpload}
-                className={styles.termsFileInput}
-              />
-              {termsFileName && <p className={styles.termsFileName}>Uploaded: {termsFileName}</p>}
-            </div>
+            {isSuperUser && (
+              <div className={styles.termsUploadSection}>
+                <label htmlFor="terms-file-upload" className={styles.termsUploadLabel}>
+                  Upload Terms Document
+                </label>
+                <input
+                  id="terms-file-upload"
+                  type="file"
+                  accept=".txt,.md,.html"
+                  onChange={handleTermsFileUpload}
+                  className={styles.termsFileInput}
+                />
+                {termsFileName && <p className={styles.termsFileName}>Uploaded: {termsFileName}</p>}
+              </div>
+            )}
             {termsContent && (
               <div className={styles.termsDocumentContent}>
                 {termsFileName.endsWith('.html') ? (
@@ -397,19 +401,21 @@ const ExpertSystemChat = () => {
             loadingStatus={privacyStatus}
             loadingDescription={privacyDescription}
           >
-            <div className={styles.termsUploadSection}>
-              <label htmlFor="privacy-file-upload" className={styles.termsUploadLabel}>
-                Upload Privacy Document
-              </label>
-              <input
-                id="privacy-file-upload"
-                type="file"
-                accept=".txt,.md,.html"
-                onChange={handlePrivacyFileUpload}
-                className={styles.termsFileInput}
-              />
-              {privacyFileName && <p className={styles.termsFileName}>Uploaded: {privacyFileName}</p>}
-            </div>
+            {isSuperUser && (
+              <div className={styles.termsUploadSection}>
+                <label htmlFor="privacy-file-upload" className={styles.termsUploadLabel}>
+                  Upload Privacy Document
+                </label>
+                <input
+                  id="privacy-file-upload"
+                  type="file"
+                  accept=".txt,.md,.html"
+                  onChange={handlePrivacyFileUpload}
+                  className={styles.termsFileInput}
+                />
+                {privacyFileName && <p className={styles.termsFileName}>Uploaded: {privacyFileName}</p>}
+              </div>
+            )}
             {privacyContent && (
               <div className={styles.termsDocumentContent}>
                 {privacyFileName.endsWith('.html') ? (
