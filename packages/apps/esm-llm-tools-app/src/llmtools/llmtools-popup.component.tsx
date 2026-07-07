@@ -1,6 +1,7 @@
 import React from 'react';
 import { IconButton } from '@carbon/react';
-import { CloseIcon, getCoreTranslation } from '@openmrs/esm-framework';
+import { getCoreTranslation } from '@openmrs/esm-framework';
+import { Close } from '@carbon/react/icons';
 import ExpertSystemChat from './expert-system-chat.component';
 import styles from './llmtools-popup.styles.scss';
 
@@ -15,7 +16,7 @@ function LlmToolsPopup(props: LlmToolsPopupProps) {
       <ExpertSystemChat />
       <div className={styles.farRight}>
         <IconButton kind="ghost" label={getCoreTranslation('close')} onClick={props.close} size="sm">
-          <CloseIcon size={16} />
+          <Close size={16} />
         </IconButton>
       </div>
     </div>
