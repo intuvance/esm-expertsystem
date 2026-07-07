@@ -306,7 +306,7 @@ const ExpertSystemChat = () => {
     setModalOpen(true);
   };
 
-  const isSuperUser = (session?.user?.roles || []).some((r) => /has super user privileges/i.test(r.display));
+  const isSuperUser = (session?.user?.roles || []).some((r) => /System Developer/i.test(r.display));
 
   const registerMessageRef = (id: string, el: HTMLDivElement | null) => {
     if (el) {
