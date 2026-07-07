@@ -55,6 +55,10 @@ const ExpertSystemChat = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalContent, setModalContent] = useState('');
   const [modalTitle, setModalTitle] = useState('');
+  const [fullResponseModalOpen, setFullResponseModalOpen] = useState(false);
+  const [fullResponseContent, setFullResponseContent] = useState('');
+  const [wordMapModalOpen, setWordMapModalOpen] = useState(false);
+  const [diagramModalOpen, setDiagramModalOpen] = useState(false);
 
   const wsRef = useRef<WebSocket | null>(null);
   const requestIdRef = useRef<string | null>(null);
@@ -120,6 +124,9 @@ const ExpertSystemChat = () => {
             setSqlQuery(data.sql);
             setShowSql(true);
           }
+
+          setFullResponseContent(newMessage.text);
+          setFullResponseModalOpen(true);
         } else if (data.type === 'error') {
           setError(data.data);
           setIsStreaming(false);
@@ -275,6 +282,21 @@ const ExpertSystemChat = () => {
           <div className={styles.labelPadding}>
             <LlmToolsAILabel />
           </div>
+          <Button kind="ghost" size="sm" onClick={() => setDiagramModalOpen(true)}>
+            Context Diagram
+          </Button>
+          {streamingMessage && (
+            <Button
+              kind="ghost"
+              size="sm"
+              onClick={() => {
+                setFullResponseContent(streamingMessage);
+                setFullResponseModalOpen(true);
+              }}
+            >
+              View Response
+            </Button>
+          )}
           <Button kind="ghost" size="sm" onClick={() => setOpenTerms(true)}>
             Usage terms
           </Button>
@@ -441,6 +463,7 @@ const ExpertSystemChat = () => {
                   onChange={(e) => setSelectedModel(e.selectedItem)}
                   disabled={loading || !!modelError || models.length === 0}
                 />
+                {toolsError && <p className={styles.toolsErrorHint}>Showing Ollama Models</p>}
               </div>
             </div>
 
@@ -490,6 +513,48 @@ const ExpertSystemChat = () => {
       >
         <div className={styles.modalContent}>
           <ReactMarkdown remarkPlugins={[remarkGfm]}>{modalContent}</ReactMarkdown>
+        </div>
+      </Modal>
+
+      <Modal
+        open={fullResponseModalOpen}
+        onRequestClose={() => setFullResponseModalOpen(false)}
+        modalHeading="Full Response"
+        modalLabel="Full response"
+        primaryButtonText={t('cancel', 'Close')}
+        onRequestSubmit={() => setFullResponseModalOpen(false)}
+        className={styles.fullPageModal}
+      >
+        <div className={styles.fullPageModalContent}>
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>{fullResponseContent}</ReactMarkdown>
+        </div>
+      </Modal>
+
+      <Modal
+        open={wordMapModalOpen}
+        onRequestClose={() => setWordMapModalOpen(false)}
+        modalHeading="Word Map"
+        modalLabel="Word Map"
+        primaryButtonText={t('cancel', 'Close')}
+        onRequestSubmit={() => setWordMapModalOpen(false)}
+        className={styles.fullPageModal}
+      >
+        <div className={styles.fullPageModalContent}>
+          <WordMapAndDiagram msg={{ text: '' }} />
+        </div>
+      </Modal>
+
+      <Modal
+        open={diagramModalOpen}
+        onRequestClose={() => setDiagramModalOpen(false)}
+        modalHeading="Context Diagram"
+        modalLabel="Context Diagram"
+        primaryButtonText={t('cancel', 'Close')}
+        onRequestSubmit={() => setDiagramModalOpen(false)}
+        className={styles.fullPageModal}
+      >
+        <div className={styles.fullPageModalContent}>
+          <WordMapAndDiagram msg={{ text: '' }} />
         </div>
       </Modal>
     </div>
